@@ -7,17 +7,25 @@ from pymongo import MongoClient
 
 class Completions:
     """
-    A class to handle conversations with OpenAI's chat completion models.
+    A class to interact with OpenAI's chat completion models and manage conversation history.
+
+    This class handles the communication with OpenAI's API for generating chat completions
+    and stores conversation histories in a MongoDB database.
 
     Attributes:
-        client (OpenAI): The OpenAI client for interacting with the API.
-        messages (list): A list to keep track of the conversation history.
+        client (OpenAI): An instance of the OpenAI client used for API interactions.
+        messages (list): A list that stores the history of the conversation.
+        mongo_client (MongoClient): A client connection to the MongoDB server.
+        db (Database): A reference to a specific MongoDB database.
+        conversations_collection (Collection): A MongoDB collection for storing conversation data.
     """
 
     def __init__(self) -> None:
         """
-        Initializes a new Completions instance, loading environment variables
-        and creating an OpenAI client for API interactions.
+        Initializes a new instance of the Completions class.
+
+        This method sets up the MongoDB client, loads environment variables, reads initial instructions
+        from a JSON file, and initializes the OpenAI client for API interactions.
         """
         self.mongo_client = MongoClient(os.getenv("MONGO_URI"))
         self.db = self.mongo_client["llm_db"]
@@ -37,10 +45,11 @@ class Completions:
 
     def get_message(self, message: str, isJson: bool = False) -> str:
         """
-        Sends a message to the OpenAI API and stores the response.
+        Sends a message to the OpenAI API, stores the response, and returns it.
 
         Parameters:
-            message (str): The user's input message to send to the API.
+            message (str): The user's input message to be sent to the API.
+            isJson (bool): A flag indicating whether the response should be in JSON format.
 
         Returns:
             str: The response message from the OpenAI completion model.
@@ -48,23 +57,18 @@ class Completions:
         Raises:
             TypeError: If the response from the API is not a string.
         """
-        self.messages.append(
-            {
-                "role": "user",
-                "content": message,
-            }
-        )
+        self.messages.append({"role": "user", "content": message})
 
         if isJson:
             response = self.client.chat.completions.create(
-                model=os.getenv("MODEL_NAME"),  # type: ignore
-                messages=self.messages,  # type: ignore
+                model=os.getenv("MODEL_NAME"),
+                messages=self.messages,
                 response_format={"type": "json_object"},
             )
         else:
             response = self.client.chat.completions.create(
-                model=os.getenv("MODEL_NAME"),  # type: ignore
-                messages=self.messages,  # type: ignore
+                model=os.getenv("MODEL_NAME"),
+                messages=self.messages,
             )
 
         got_message = response.choices[0].message.content
@@ -72,12 +76,7 @@ class Completions:
         if got_message is None:
             raise TypeError("Received message is not a string")
 
-        self.messages.append(
-            {
-                "role": "assistant",
-                "content": response.choices[0].message.content,
-            }
-        )
+        self.messages.append({"role": "assistant", "content": got_message})
 
         return got_message
 
@@ -92,39 +91,33 @@ class Completions:
 
     def save_conversation_to_mongo(self, conversation_summary):
         """
-        Saves the conversation summary to MongoDB.
+        Saves the conversation summary to the MongoDB database.
 
         Parameters:
-            conversation_summary (dict): The summary of the conversation.
+            conversation_summary (dict): The summary of the conversation in JSON format.
         """
         self.conversations_collection.insert_one(conversation_summary)
         print("Conversation saved to MongoDB.")
 
     def chat(self) -> None:
         """
-        Initiates a continuous chat interaction with the OpenAI chat model.
+        Initiates and manages a chat interaction with the OpenAI chat model.
 
-        In this conversational loop, the method prompts the user for input, sends
-        it to the OpenAI API, receives a response, and displays it. The loop
-        continues until the user types 'exit', at which point the conversation
-        terminates.
+        This method facilitates a continuous conversation loop, handling user input,
+        generating responses using the OpenAI API, and providing options to save or clear
+        the conversation history. The loop continues until the user decides to exit.
         """
-
         while True:
             message = self.get_user_input()
 
-            # To exit the conversation
             if message == "exit":
-                # Close the connection
                 self.client.close()
                 break
 
-            # To clear the conversation history
             if message == "clear":
                 self.messages = []
                 continue
 
-            # To save the conversation summary to MongoDB
             if message == "save":
                 summary_instruction = """
                 Summarize the conversation so far in the following json format.
@@ -137,12 +130,9 @@ class Completions:
 
                 summary_json = json.loads(summary)
                 self.save_conversation_to_mongo(summary_json)
-
-                # Close the connection
                 self.client.close()
                 break
 
-            # To get the next message from the assistant
             response = self.get_message(message)
             print(f"\nAssistant: {response}\n")
 
