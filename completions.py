@@ -20,8 +20,8 @@ class Completions:
         and creating an OpenAI client for API interactions.
         """
         self.mongo_client = MongoClient(os.getenv("MONGO_URI"))
-        self.db = self.mongo_client.chat_db
-        self.conversations_collection = self.db.conversations
+        self.db = self.mongo_client["llm_db"]
+        self.conversations_collection = self.db["conversations"]
 
         load_dotenv()
 
@@ -115,6 +115,8 @@ class Completions:
 
             # To exit the conversation
             if message == "exit":
+                # Close the connection
+                self.client.close()
                 break
 
             # To clear the conversation history
@@ -127,7 +129,6 @@ class Completions:
                 summary_instruction = """
                 Summarize the conversation so far in the following json format.
 
-
                 {"title":str,"summary":str}
                 """
 
@@ -136,6 +137,9 @@ class Completions:
 
                 summary_json = json.loads(summary)
                 self.save_conversation_to_mongo(summary_json)
+
+                # Close the connection
+                self.client.close()
                 break
 
             # To get the next message from the assistant
