@@ -43,7 +43,10 @@ class Completions:
             api_key=os.getenv("API_KEY"),
         )
 
-    def get_message(self, message: str, isJson: bool = False) -> str:
+    def llama_index(self):
+        return "hoge"
+
+    def get_message(self, message: str) -> str:
         """
         Sends a message to the OpenAI API, stores the response, and returns it.
 
@@ -59,22 +62,22 @@ class Completions:
         """
         self.messages.append({"role": "user", "content": message})
 
-        if isJson:
-            response = self.client.chat.completions.create(
-                model=os.getenv("MODEL_NAME"),
-                messages=self.messages,
-                response_format={"type": "json_object"},
-            )
-        else:
-            response = self.client.chat.completions.create(
-                model=os.getenv("MODEL_NAME"),
-                messages=self.messages,
-            )
+        response = self.client.chat.completions.create(
+            model=os.getenv("MODEL_NAME"),  # gpt-4 #ignore
+            messages=self.messages,
+            response_format={"type": "json_object"},
+        )
 
-        got_message = response.choices[0].message.content
+        json_data = json.loads(response.choices[0].message.content)
+        got_message = json_data["content"]
+        query_text = json_data["query_text"]
 
         if got_message is None:
             raise TypeError("Received message is not a string")
+
+        searched_info = self.llama_index(query_text)
+
+        content = f"LlamaIndex Info : {searched_info}\n\n"
 
         self.messages.append({"role": "assistant", "content": got_message})
 
@@ -125,7 +128,7 @@ class Completions:
                 {"title":str,"summary":str}
                 """
 
-                summary = self.get_message(summary_instruction, True)
+                summary = self.get_message(summary_instruction)
                 print(f"Summary : \n\n{summary}\n")
 
                 summary_json = json.loads(summary)

@@ -1,3 +1,2 @@
-{
-    "instructions":"You are helphul assistant."
-}
+{"instructions" : "'content': 'This is the response or data from the assistant.','query_text': 'Specific query for the LlamaIndex'}"}
+
