@@ -43,10 +43,10 @@ class Completions:
             api_key=os.getenv("API_KEY"),
         )
 
-    def llama_index(self):
+    def llama_index(self, query):
         return "hoge"
 
-    def get_message(self, message: str) -> str:
+    def get_message(self, message: str):
         """
         Sends a message to the OpenAI API, stores the response, and returns it.
 
@@ -69,6 +69,10 @@ class Completions:
         )
 
         json_data = json.loads(response.choices[0].message.content)
+
+        if "summary" in json_data:
+            return json_data
+
         got_message = json_data["content"]
         query_text = json_data["query_text"]
 
@@ -129,10 +133,13 @@ class Completions:
                 """
 
                 summary = self.get_message(summary_instruction)
-                print(f"Summary : \n\n{summary}\n")
+                print(summary)
 
-                summary_json = json.loads(summary)
-                self.save_conversation_to_mongo(summary_json)
+                # summary_json = json.loads(summary)
+
+                print(f"Summary : \n\n{summary['summary']}\n")
+
+                self.save_conversation_to_mongo(summary)
                 self.client.close()
                 break
 

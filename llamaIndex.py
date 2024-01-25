@@ -9,8 +9,8 @@ from query_engine import DEFAULT_CHOICE_SELECT_PROMPT, query_response_synthesize
 import logging
 import sys
 
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
-logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
+# logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+# logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
 
 llm = OpenAI(temperature=0.1, model="gpt-4")
 
@@ -48,7 +48,7 @@ class LlamaIndex:
         return response
 
     def test(self):
-        query_text = "What do I love to eat?"
+        query_text = "What is happy?"
         print(self.llama_index(query_text))
 
 
