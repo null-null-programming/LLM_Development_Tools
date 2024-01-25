@@ -14,8 +14,8 @@ import sys
 
 llm = OpenAI(temperature=0.1, model="gpt-4")
 
-llama_debug_handler = LlamaDebugHandler()
-callback_manager = CallbackManager([llama_debug_handler])
+# llama_debug_handler = LlamaDebugHandler()
+# callback_manager = CallbackManager([llama_debug_handler])
 service_context = ServiceContext.from_defaults(llm=llm)
 
 
@@ -43,14 +43,10 @@ class LlamaIndex:
             response_synthesizer=query_response_synthesizer,
         )
 
-    def llama_index(self, query_text):
+    def query(self, query_text):
         response = self.query_engine.query(query_text)
         return response
 
-    def test(self):
-        query_text = "What is happy?"
-        print(self.llama_index(query_text))
-
 
 if __name__ == "__main__":
-    LlamaIndex().test()
+    LlamaIndex().query("What is happy?")

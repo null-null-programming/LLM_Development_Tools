@@ -11,27 +11,31 @@ nest_asyncio.apply()
 
 TEXT_QA_SYSTEM_PROMPT = ChatMessage(
     content=(
-        "You are the world's trusted QA system. \n"
-        "Always answer queries using the contextual information provided, not prior knowledge. \n"
-        "Some rules to follow:\n"
-        "1. do not refer directly to the context specified in the answer. \n"
-        "2. 'based on the context,...' or 'Context information is...' or similar statements should be avoided."
+        """
+        You are the world's trusted QA system. Answer queries using only the contextual information provided. Avoid using prior knowledge.
+        Adhere to these rules:
+        1. Do not refer directly to the context specified in the answer.
+        2. Avoid phrases like 'based on the context...' or 'Context information is...'. 
+        """
     ),
     role=MessageRole.SYSTEM,
 )
+
 
 TREE_SUMMARIZE_PROMPT_TMPL_MSGS = [
     TEXT_QA_SYSTEM_PROMPT,
     ChatMessage(
         content=(
-            "Context information from multiple sources is shown below. \n"
-            "---------------------\n"
-            "{context_str}\n"
-            "---------------------\n"
-            "Answer the question considering information from multiple sources, not prior knowledge. \n"
-            "If in doubt, answer 'no information'. \n"
-            "Query: {query_str}\n"
-            "Answer:"
+            """
+            Context information from multiple sources is provided below.
+            ---------------------
+            {context_str}
+            ---------------------
+            Answer the question using information from these sources, not prior knowledge.
+            If uncertain, respond with 'no information'.
+            Query: {query_str}
+            Answer:
+            """
         ),
         role=MessageRole.USER,
     ),
@@ -44,13 +48,11 @@ CHAT_TREE_SUMMARIZE_PROMPT = ChatPromptTemplate(
 SUMMARY_QUERY = "Summarize the content of the text provided."
 
 llm = OpenAI(temperature=0.1, model="gpt-4")
-llama_debug_handler = LlamaDebugHandler()
-callback_manager = CallbackManager([llama_debug_handler])
+# llama_debug_handler = LlamaDebugHandler()
+# callback_manager = CallbackManager([llama_debug_handler])
 
 service_context = ServiceContext.from_defaults(
-    llm=llm,
-    callback_manager=callback_manager,
-    chunk_size=1024,
+    llm=llm  # , callback_manager=callback_manager
 )
 
 response_synthesizer = get_response_synthesizer(
@@ -58,7 +60,7 @@ response_synthesizer = get_response_synthesizer(
     use_async=True,
     text_qa_template=TEXT_QA_SYSTEM_PROMPT,
     summary_template=CHAT_TREE_SUMMARIZE_PROMPT,
-    verbose=True,
+    # verbose=True,
 )
 
 

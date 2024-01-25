@@ -3,6 +3,7 @@ import json
 from dotenv import load_dotenv
 from openai import OpenAI
 from pymongo import MongoClient
+from llamaIndex import LlamaIndex
 
 
 class Completions:
@@ -43,8 +44,7 @@ class Completions:
             api_key=os.getenv("API_KEY"),
         )
 
-    def llama_index(self, query):
-        return "hoge"
+        self.llamaIndex = LlamaIndex()
 
     def get_message(self, message: str):
         """
@@ -79,10 +79,11 @@ class Completions:
         if got_message is None:
             raise TypeError("Received message is not a string")
 
-        searched_info = self.llama_index(query_text)
+        searched_info = self.llamaIndex.query(query_text)
 
-        content = f"LlamaIndex Info : {searched_info}\n\n"
-
+        content = f"\nLlamaIndex Info : {searched_info}\n"
+        # print(content)
+        self.messages.append({"role": "assistant", "content": searched_info})
         self.messages.append({"role": "assistant", "content": got_message})
 
         return got_message
@@ -133,10 +134,6 @@ class Completions:
                 """
 
                 summary = self.get_message(summary_instruction)
-                print(summary)
-
-                # summary_json = json.loads(summary)
-
                 print(f"Summary : \n\n{summary['summary']}\n")
 
                 self.save_conversation_to_mongo(summary)
