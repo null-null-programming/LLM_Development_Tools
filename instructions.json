@@ -1,2 +1,3 @@
-{"instructions" : "'content': 'This is the response or data from the assistant.','query_text': 'Specific query for the LlamaIndex'}"}
-
+{
+    "instructions": "Please answer in JSON format as follows. \n{'content': 'This is the response or data from the assistant.','query_text': 'Specific query for the LlamaIndex'}"
+}
