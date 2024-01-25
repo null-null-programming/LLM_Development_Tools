@@ -1,10 +1,8 @@
 from llama_index import ServiceContext, get_response_synthesizer
 from llama_index.indices.document_summary import DocumentSummaryIndex
 from llama_index.llms import ChatMessage, MessageRole
-from llama_index.callbacks import CallbackManager, LlamaDebugHandler
 from llama_index.prompts.base import ChatPromptTemplate
 from llama_index.llms import OpenAI
-from llama_index import LLMPredictor
 import nest_asyncio
 
 nest_asyncio.apply()
@@ -48,19 +46,14 @@ CHAT_TREE_SUMMARIZE_PROMPT = ChatPromptTemplate(
 SUMMARY_QUERY = "Summarize the content of the text provided."
 
 llm = OpenAI(temperature=0.1, model="gpt-4")
-# llama_debug_handler = LlamaDebugHandler()
-# callback_manager = CallbackManager([llama_debug_handler])
 
-service_context = ServiceContext.from_defaults(
-    llm=llm  # , callback_manager=callback_manager
-)
+service_context = ServiceContext.from_defaults(llm=llm)
 
 response_synthesizer = get_response_synthesizer(
     response_mode="tree_summarize",
     use_async=True,
     text_qa_template=TEXT_QA_SYSTEM_PROMPT,
     summary_template=CHAT_TREE_SUMMARIZE_PROMPT,
-    # verbose=True,
 )
 
 

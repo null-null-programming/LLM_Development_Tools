@@ -63,10 +63,14 @@ class Completions:
         self.messages.append({"role": "user", "content": message})
 
         response = self.client.chat.completions.create(
-            model=os.getenv("MODEL_NAME"),  # gpt-4 #ignore
+            model=os.getenv("MODEL_NAME"),
             messages=self.messages,
             response_format={"type": "json_object"},
         )
+
+        print()
+        print(response)
+        print()
 
         json_data = json.loads(response.choices[0].message.content)
 
@@ -81,10 +85,14 @@ class Completions:
 
         searched_info = self.llamaIndex.query(query_text)
 
-        content = f"\nLlamaIndex Info : {searched_info}\n"
-        # print(content)
-        self.messages.append({"role": "assistant", "content": searched_info})
-        self.messages.append({"role": "assistant", "content": got_message})
+        content = f"\nLlamaIndex Info : \n{searched_info}\n"
+        print(content)
+
+        if searched_info != "No information.":
+            send_message = f"{content}\n{got_message}"
+            self.messages.append({"role": "assistant", "content": send_message})
+        else:
+            self.messages.append({"role": "assistant", "content": got_message})
 
         return got_message
 

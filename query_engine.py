@@ -2,7 +2,9 @@ from llama_index.prompts.base import PromptTemplate
 from llama_index.prompts.prompt_type import PromptType
 from llama_index import get_response_synthesizer
 from document_summary_index import CHAT_TREE_SUMMARIZE_PROMPT
+import nest_asyncio
 
+nest_asyncio.apply()
 
 DEFAULT_CHOICE_SELECT_PROMPT_TMPL = """
                                     The documents are listed below. Each document is numbered next to it, along with a summary. Please answer the number of the documents you need to reference to answer the question, in order of relevance. The relevance score is a number from 1-10 based on how relevant the document seems to be to the question. 
@@ -42,12 +44,10 @@ DEFAULT_CHOICE_SELECT_PROMPT_TMPL = """
 DEFAULT_CHOICE_SELECT_PROMPT = PromptTemplate(
     DEFAULT_CHOICE_SELECT_PROMPT_TMPL,
     prompt_type=PromptType.CHOICE_SELECT,
-    # verbose=True,
 )
 
 query_response_synthesizer = get_response_synthesizer(
     response_mode="tree_summarize",
     use_async=True,
     summary_template=CHAT_TREE_SUMMARIZE_PROMPT,
-    # verbose=True,
 )
