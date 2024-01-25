@@ -68,10 +68,6 @@ class Completions:
             response_format={"type": "json_object"},
         )
 
-        print()
-        print(response)
-        print()
-
         json_data = json.loads(response.choices[0].message.content)
 
         if "summary" in json_data:
@@ -113,7 +109,21 @@ class Completions:
             conversation_summary (dict): The summary of the conversation in JSON format.
         """
         self.conversations_collection.insert_one(conversation_summary)
-        print("Conversation saved to MongoDB.")
+        print("Conversation saved to MongoDB.\n")
+
+        answer = input("Do you want to update the Index to ChromaDB? (y/n) : ")
+        print("")
+
+        if (answer == "y") or (answer == "Y") or (answer == "yes") or (answer == "Yes"):
+            self.save_index()
+
+    def save_index(self):
+        """
+        Saves the index to the MongoDB database.
+        """
+        print("Start to save VectorIndex to ChromaDB.\n")
+        self.llamaIndex.save()
+        print("\nSaved VectorIndex to ChromaDB.\n")
 
     def chat(self) -> None:
         """
@@ -147,6 +157,10 @@ class Completions:
                 self.save_conversation_to_mongo(summary)
                 self.client.close()
                 break
+
+            if message == "update":
+                self.save_index()
+                continue
 
             response = self.get_message(message)
             print(f"\nAssistant: {response}\n")

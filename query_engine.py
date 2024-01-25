@@ -10,6 +10,7 @@ DEFAULT_CHOICE_SELECT_PROMPT_TMPL = """
                                     The documents are listed below. Each document is numbered next to it, along with a summary. Please answer the number of the documents you need to reference to answer the question, in order of relevance. The relevance score is a number from 1-10 based on how relevant the document seems to be to the question. 
 
                                     Be sure to use the following format and never describe the text in any other way. 
+                                    If you could not find actual information, please say 'no information'.
 
                                     Document 1:
                                     [summary of document 1]
@@ -49,5 +50,5 @@ DEFAULT_CHOICE_SELECT_PROMPT = PromptTemplate(
 query_response_synthesizer = get_response_synthesizer(
     response_mode="tree_summarize",
     use_async=True,
-    summary_template=CHAT_TREE_SUMMARIZE_PROMPT,
+    summary_template=CHAT_TREE_SUMMARIZE_PROMPT,  # DEFAULT_CHOICE_SELECT_PROMPT,
 )

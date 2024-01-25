@@ -1,11 +1,21 @@
 from llama_index import ServiceContext, get_response_synthesizer
 from llama_index.indices.document_summary import DocumentSummaryIndex
+from llama_index import VectorStoreIndex
 from llama_index.llms import ChatMessage, MessageRole
 from llama_index.prompts.base import ChatPromptTemplate
 from llama_index.llms import OpenAI
+from llama_index.vector_stores import ChromaVectorStore
+from llama_index.storage.storage_context import StorageContext
 import nest_asyncio
+import chromadb
 
 nest_asyncio.apply()
+
+db = chromadb.PersistentClient(path="./chroma_db")
+chroma_collection = db.get_or_create_collection("quickstart")
+vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
+storage_context = StorageContext.from_defaults(vector_store=vector_store)
+
 
 TEXT_QA_SYSTEM_PROMPT = ChatMessage(
     content=(
@@ -57,10 +67,17 @@ response_synthesizer = get_response_synthesizer(
 )
 
 
-def getDocumentSummaryIndex(document):
-    return DocumentSummaryIndex.from_documents(
-        document,
+def save_index(documents):
+    DocumentSummaryIndex.from_documents(
+        documents,
         service_context=service_context,
+        storage_context=storage_context,
         response_synthesizer=response_synthesizer,
         summary_query=SUMMARY_QUERY,
+    )
+
+
+def getVectorStoreIndex():
+    return VectorStoreIndex.from_vector_store(
+        vector_store=vector_store, storage_context=storage_context
     )
